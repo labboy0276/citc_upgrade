@@ -1,0 +1,6 @@
+name = CITC Update
+description = This module updates the old hotsauce dependencies to new ones for image styles, etc
+package = Custom
+core = 7.x
+version = 7.x-1.0
+dependencies[] = ctools

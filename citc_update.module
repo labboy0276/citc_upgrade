@@ -1,0 +1,138 @@
+<?php 
+
+function citc_update_install() {
+  db_update('system')
+  ->fields(array('schema_version' => '7200'))
+  ->condition('name', 'citc_update')
+  ->execute();
+}
+
+/**
+* Update old Hotauce Image Styles to Panopoly
+*/
+function citc_update_update_7201() {
+
+  $result1 = db_query('SELECT data,id FROM {field_config_instance}')->fetchALL();
+  foreach ($result1 as $key => $value) {
+    $data = unserialize($value->data);
+    if (isset($data['display']['default']['settings']['image_style']) && $data['display']['default']['settings']['image_style'] != '') {
+      $data['display']['default']['settings']['image_style'] = str_replace('hotsauce','panopoly',$data['display']['default']['settings']['image_style']);
+      db_update('field_config_instance')
+      ->fields(array('data' => serialize($data)))
+      ->condition('id', $value->id)
+      ->execute();
+    }
+    if (isset($data['display']['featured']['settings']['image_style']) && $data['display']['featured']['settings']['image_style'] != '') {
+      $data['display']['featured']['settings']['image_style'] = str_replace('hotsauce','panopoly',$data['display']['featured']['settings']['image_style']);
+      db_update('field_config_instance')
+      ->fields(array('data' => serialize($data)))
+      ->condition('id', $value->id)
+      ->execute();
+    }
+    if (isset($data['display']['search_result']['settings']['image_style']) && $data['display']['search_result']['settings']['image_style'] != '') {
+      $data['display']['search_result']['settings']['image_style'] = str_replace('hotsauce','panopoly',$data['display']['search_result']['settings']['image_style']);
+      db_update('field_config_instance')
+      ->fields(array('data' => serialize($data)))
+      ->condition('id', $value->id)
+      ->execute();
+    }
+    if (isset($data['display']['teaser']['settings']['image_style']) && $data['display']['teaser']['settings']['image_style'] != '') {
+      $data['display']['teaser']['settings']['image_style'] = str_replace('hotsauce','panopoly',$data['display']['teaser']['settings']['image_style']);
+      db_update('field_config_instance')
+      ->fields(array('data' => serialize($data)))
+      ->condition('id', $value->id)
+      ->execute();
+    }
+    if (isset($data['widget']['settings']['preview_image_style']) && $data['widget']['settings']['preview_image_style'] != '')  {
+      $data['widget']['settings']['preview_image_style'] = str_replace('hotsauce','panopoly',$data['widget']['settings']['preview_image_style']);
+      db_update('field_config_instance')
+      ->fields(array('data' => serialize($data)))
+      ->condition('id', $value->id)
+      ->execute();
+
+    }
+    if (isset($data['widget']['settings']['manualcrop_styles_list']))  {
+      if (count($data['widget']['settings']['manualcrop_styles_list']) > 0) {
+        foreach ($data['widget']['settings']['manualcrop_styles_list'] as $key2 => $value2) {
+          $keynew = str_replace('hotsauce','panopoly',$key2);
+          $value2 = str_replace('hotsauce','panopoly',$value2);
+          unset($data['widget']['settings']['manualcrop_styles_list'][$key2]);
+          $data['widget']['settings']['manualcrop_styles_list'][$keynew] = $value2;
+          db_update('field_config_instance')
+          ->fields(array('data' => serialize($data)))
+          ->condition('id', $value->id)
+          ->execute();
+        }  
+      } 
+    }
+  }
+
+  $result2 = db_query('SELECT configuration,pid FROM {panels_pane}')->fetchALL();
+  foreach ($result2 as $key => $value) {
+    $data = unserialize($value->configuration);
+    if(isset($data['formatter_settings'])) {
+      if (count($data['formatter_settings']) > 0 && isset($data['formatter_settings']['image_style'])) {
+        $data['formatter_settings']['image_style'] = str_replace('hotsauce','panopoly',$data['formatter_settings']['image_style']);
+        db_update('panels_pane')
+        ->fields(array('configuration' => serialize($data)))
+        ->condition('pid', $value->pid)
+        ->execute();
+      }
+    }
+  }
+
+  $result3 = db_query('SELECT vid,id,display_options FROM {views_display}')->fetchALL();
+  foreach ($result3 as $key => $value) {
+    $data = unserialize($value->display_options);
+    if (isset($data['fields'])) {
+      foreach ($data['fields'] as $key2 => $value2) {
+        if(isset($value2['settings'])) {
+          if (isset($value2['settings']['image_style'])) {
+            $data['fields'][$key2]['settings']['image_style'] = str_replace('hotsauce','panopoly',$value2['settings']['image_style']);
+            db_update('views_display')
+            ->fields(array('display_options' => serialize($data)))
+            ->condition('vid', $value->vid)
+            ->condition('id', $value->id)
+            ->execute();
+          }
+        }
+      }
+    }
+  }
+
+  db_query('TRUNCATE cache');
+  db_query('TRUNCATE cache_block');
+  db_query('TRUNCATE cache_bootstrap');
+  db_query('TRUNCATE cache_entity_fieldable_panels_pane');
+  db_query('TRUNCATE cache_field');
+  db_query('TRUNCATE cache_filter');
+  db_query('TRUNCATE cache_form');
+  db_query('TRUNCATE cache_image');
+  db_query('TRUNCATE cache_libraries');
+  db_query('TRUNCATE cache_menu');
+  db_query('TRUNCATE cache_page');
+  db_query('TRUNCATE cache_panels');
+  db_query('TRUNCATE cache_path');
+  db_query('TRUNCATE cache_search_api_solr');
+  db_query('TRUNCATE cache_token');
+  db_query('TRUNCATE cache_update');
+  db_query('TRUNCATE cache_views');
+  db_query('TRUNCATE cache_views_data');
+  db_query('TRUNCATE ctools_css_cache');
+  db_query('TRUNCATE ctools_object_cache');
+}
+
+/**
+* Remove field basic spolight from DB due to panopoly error
+*/
+function citc_update_update_7202() {
+    $field_name = 'field_basic_spotlight_items';
+    db_delete('field_config')
+      ->condition('field_name', $field_name)
+      ->execute();
+    db_delete('field_config_instance')
+      ->condition('field_name', $field_name)
+      ->execute();
+    db_drop_table('field_data_field_basic_spotlight_items');
+    db_drop_table('field_revision_field_basic_spotlight_items');
+}
