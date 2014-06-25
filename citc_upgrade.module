@@ -1,16 +1,16 @@
 <?php 
 
-function citc_update_install() {
+function citc_upgrade_install() {
   db_update('system')
   ->fields(array('schema_version' => '7200'))
-  ->condition('name', 'citc_update')
+  ->condition('name', 'citc_upgrade')
   ->execute();
 }
 
 /**
 * Update old Hotauce Image Styles to Panopoly
 */
-function citc_update_update_7201() {
+function citc_upgrade_update_7201() {
 
   $result1 = db_query('SELECT data,id FROM {field_config_instance}')->fetchALL();
   foreach ($result1 as $key => $value) {
@@ -125,7 +125,7 @@ function citc_update_update_7201() {
 /**
 * Remove field basic spolight from DB due to panopoly error
 */
-function citc_update_update_7202() {
+function citc_upgrade_update_7202() {
     $field_name = 'field_basic_spotlight_items';
     db_delete('field_config')
       ->condition('field_name', $field_name)

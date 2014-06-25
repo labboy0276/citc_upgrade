@@ -1,4 +1,4 @@
-name = CITC Update
+name = CITC Upgrade
 description = This module updates the old hotsauce dependencies to new ones for image styles, etc
 package = Custom
 core = 7.x
